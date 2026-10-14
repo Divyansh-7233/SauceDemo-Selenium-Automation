@@ -29,16 +29,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Comparator;
+import java.util.List;
 
 
 public class BaseTest {
 
     private static final Path REPORT_DIRECTORY = Paths.get(
             System.getProperty("user.dir"), "target", "extent-reports");
+    private static final List<String> REPORT_TEST_ORDER = List.of(
+            "verifyAddAndRemoveProductsFromCart",
+            "e2ePurchaseFlow",
+            "verifyEmptyCheckoutFieldsValidation",
+            "emptyCredentialsTest",
+            "invalidLoginTest");
 
     protected WebDriver driver;
     private ChromeDriverService driverService;
-
     private static ExtentReports extent;
     protected ExtentTest test;
 
@@ -72,11 +79,23 @@ public class BaseTest {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
         driverService = ChromeDriverService.createDefaultService();
+        long driverStart = System.nanoTime();
         driver = new ChromeDriver(driverService, options);
+        long driverReady = System.nanoTime();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         driver.manage().window().maximize();
 
+        long navigationStart = System.nanoTime();
         driver.get("https://www.saucedemo.com/");
+        long navigationComplete = System.nanoTime();
+        System.out.printf(
+                "[browser-session] test=%s driverStartup=%.3fs navigation=%.3fs "
+                        + "url=%s title=%s%n",
+                method.getName(),
+                (driverReady - driverStart) / 1_000_000_000.0,
+                (navigationComplete - navigationStart) / 1_000_000_000.0,
+                driver.getCurrentUrl(),
+                driver.getTitle());
 
         loginPage = new LoginPage(driver);
         productsPage = new ProductsPage(driver);
@@ -143,9 +162,29 @@ public class BaseTest {
         }
     }
 
+    protected void attachReportScreenshot(Path screenshotPath, String description)
+            throws IOException {
+        Path absoluteScreenshotPath = screenshotPath.toAbsolutePath().normalize();
+        if (!Files.isRegularFile(absoluteScreenshotPath)) {
+            throw new IOException("Report screenshot does not exist: " + absoluteScreenshotPath);
+        }
+
+        String reportRelativePath = REPORT_DIRECTORY.toAbsolutePath().normalize()
+                .relativize(absoluteScreenshotPath)
+                .toString()
+                .replace('\\', '/');
+        test.info(description,
+                MediaEntityBuilder.createScreenCaptureFromPath(reportRelativePath).build());
+    }
+
     @AfterSuite
     public void tearDown() {
         if (extent != null) {
+            extent.getReport().getTestList().sort(Comparator.comparingInt(
+                    reportTest -> {
+                        int order = REPORT_TEST_ORDER.indexOf(reportTest.getName());
+                        return order < 0 ? REPORT_TEST_ORDER.size() : order;
+                    }));
             extent.flush();
         }
     }

@@ -55,6 +55,6 @@ Archived copies do not update automatically when Maven is run. Preserve new evid
 
 ## Interpretation
 
-ExtentReports presents the test status and failure details, with the failure screenshot linked from the relevant test entry. Surefire provides per-class counts and error details in machine-readable XML and readable text. A screenshot is not expected for passing tests. If browser startup fails before a WebDriver is available, there may be no browser screenshot for that failure.
+ExtentReports presents the five permanent tests in this order: `verifyAddAndRemoveProductsFromCart`, `e2ePurchaseFlow`, `verifyEmptyCheckoutFieldsValidation`, `emptyCredentialsTest`, and `invalidLoginTest`. The passing `e2ePurchaseFlow` entry includes the existing `src/reports/screenshots/e2ePurchaseFlow.png` image. Failure screenshots are linked from the relevant failed-test entry; the intentionally failing `FailureScreenshotDemoTest` remains excluded from the normal suite and is run separately. Surefire provides per-class counts and error details in machine-readable XML and readable text. If browser startup fails before a WebDriver is available, there may be no browser screenshot for that failure.
 
 For the design and teardown sequence, see [architecture.md](architecture.md). For each permanent test's objective, data, steps, and recorded status, see [test-cases.md](test-cases.md).

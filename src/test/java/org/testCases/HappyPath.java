@@ -3,7 +3,10 @@ package org.testCases;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class HappyPath extends BaseTest{
+import java.io.IOException;
+import java.nio.file.Paths;
+
+public class HappyPath extends BaseTest {
 
     String uName = "standard_user";
     String uPassword = "secret_sauce";
@@ -12,7 +15,7 @@ public class HappyPath extends BaseTest{
     String pCode = "1980";
 
     @Test
-    public void e2ePurchaseFlow(){
+    public void e2ePurchaseFlow() throws IOException {
         loginPage.loginAccount(uName,uPassword);
         loginPage.clickLoginBTN();
 
@@ -38,5 +41,9 @@ public class HappyPath extends BaseTest{
         Assert.assertEquals(successMSG, "Thank you for your order!");
 
         checkOutCompletePage.backHome();
+        attachReportScreenshot(
+                Paths.get(System.getProperty("user.dir"),
+                        "src", "reports", "screenshots", "e2ePurchaseFlow.png"),
+                "Purchase flow screenshot");
     }
 }
